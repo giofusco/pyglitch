@@ -1,4 +1,4 @@
-import image_bending.core as core
+import pyglitch.core as core
 import numpy as np
 import math
 
@@ -18,12 +18,8 @@ def reverb(I, patch, delay_pixels, decay = 0.5, convert_to_one_dimensional=False
     core.put_patch_in_place(I, patch)
     return I
 
-def wah_wah(I):
-    damp = 0.6
-    minf = 500
-    maxf = 3000
-    Fw = 800
-    Fs = 48100
+def wah_wah(I, damp=0.05, minf=500, maxf=5000, Fw=2000, Fs=44100):
+
     delta = Fw / Fs
     x = np.array(I).ravel()
     Fc = np.arange(minf, maxf, delta)
