@@ -28,6 +28,14 @@ def check_block_boundaries(I, x, y, w, h):
 
 
 def extract_block(I, x, y, w, h):
+    """extract a rectangular region from the image.
+       :param I: numpy array (OpenCV Image)
+       :param x: column coord
+       :param y: row coord
+       :param w: width of the block
+       :param h: height of the block
+       :return: roi, an image region if the boundaries are correct, None otherwise
+    """
     roi = None
     if check_block_boundaries(I, x, y, w, h):
         roi = I[y:y+h, x:x+w].copy()
@@ -35,6 +43,15 @@ def extract_block(I, x, y, w, h):
 
 
 def get_patch(I, x, y, w, h):
+    """extracts a patch from the image. A patch is a rectangular region from the image combined with its top-left
+       corner coordinate within the image and its width and height.
+           :param I: numpy array (OpenCV Image)
+           :param x: column coord
+           :param y: row coord
+           :param w: width of the block
+           :param h: height of the block
+           :return: roi, an image patch if the boundaries are correct, None otherwise
+        """
     patch = None
     roi = extract_block(I, x, y, w, h)
     if roi is not None:
@@ -43,11 +60,17 @@ def get_patch(I, x, y, w, h):
 
 
 def swap_patches(I, patch1, patch2):
+    """swaps the content of two patches within the image
+        :param I: input/output image
+        :param patch1: image patch
+        :param patch2: image patch
+        :return: modified image I
+    """
     I[patch1[1]:patch1[1]+patch1[3], patch1[0]:patch1[0]+patch1[2]] = patch2[4]
     I[patch2[1]:patch2[1] + patch2[3], patch2[0]:patch2[0] + patch2[2]] = patch1[4]
     return I
 
-
+# TODO: handle different kind of paddings
 def shift_rows(I, start, num_rows, offset, padding, color=(0,0,0)):
     pad = None
     if padding == PADDING_CIRCULAR:
@@ -90,6 +113,7 @@ def shift_channel_hor(I, channel_idx, offset):
 
 
 def saturate_channel_at(I, x, y, w, h, channel_idx):
+    """saturate a channel in a specific image patch"""
     patch = get_patch(I, x, y, w, h)
     if patch is not None:
         saturate_channel(patch[4], channel_idx)
@@ -98,20 +122,26 @@ def saturate_channel_at(I, x, y, w, h, channel_idx):
 
 
 def saturate_channel(I, channel_idx):
-    I[:-1,:-1,channel_idx] = 255
+    """"saturates a channel of the image"""
+    if channel_idx < num_channels(I):
+        I[:-1,:-1,channel_idx] = 255
 
 
 def put_patch_in_place(I, patch):
+    """overwrites the location of the patch in the input image using the data contained in patch"""
     I[patch[1]:patch[1] + patch[3], patch[0]:patch[0] + patch[2]] = patch[4].copy()
 
 
 def width(I):
+    """width of image"""
     return I.shape[1]
 
 
 def height(I):
+    """height of image"""
     return I.shape[0]
 
 
 def num_channels(I):
+    """number of channels in the image"""
     return I.shape[2]

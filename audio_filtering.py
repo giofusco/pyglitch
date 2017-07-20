@@ -18,7 +18,16 @@ def reverb(I, patch, delay_pixels, decay = 0.5, convert_to_one_dimensional=False
     core.put_patch_in_place(I, patch)
     return I
 
+
+
 def wah_wah(I, damp=0.05, minf=500, maxf=5000, Fw=2000, Fs=44100):
+    """wah-wah filter
+        :parameter damp: damping factor. lower the damping factor the smaller the pass band
+        :parameter minf: min center cut off frequency of variable bandpass filter
+        :parameter maxf: max center cutoff frequency of variable bandpass filter
+        :parameter Fw: wah frequency, how many Hz per second are cycled through
+        :parameter Fs: sampling rate in Hz
+    """
 
     delta = Fw / Fs
     x = np.array(I).ravel()
