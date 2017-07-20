@@ -53,3 +53,27 @@ def wah_wah(I, damp=0.05, minf=500, maxf=5000, Fw=2000, Fs=44100):
     yb = yb / maxyb
     I = np.reshape(yb, I.shape)
     return I
+
+
+def flanger(I, max_time_delay = 0.003, rate=1, Fs=44100):
+    x = np.array(I).ravel()
+    idx = np.arange(0, len(x))
+    sin_ref = (np.sin(2 * math.pi * idx * (rate / Fs)))
+    max_samp_delay = round(max_time_delay * Fs)
+    y = np.zeros(len(x))
+    y[1: max_samp_delay] = x[1: max_samp_delay]
+    amp = 0.7
+    for i in range(max_samp_delay+1, len(x)):
+        cur_sin = np.abs(sin_ref[i])
+        cur_delay = math.ceil(cur_sin * max_samp_delay)
+        y[i] = (amp * x[i]) + amp * (x[i - cur_delay])
+    I = np.reshape(y, I.shape)
+    return I
+
+def tremolo(I, Fc=5, alpha=0.5, Fs=44100):
+    x = np.array(I).ravel()
+    index = np.arange(0, len(x))
+    trem = (1 + alpha * np.sin(2 * np.pi * index * (Fc / Fs)))
+    y = np.multiply(x,trem)
+    I = np.reshape(y, I.shape)
+    return I
