@@ -65,3 +65,4 @@ def saturate_channel(I, channel_idx):
     """"saturates a channel of the image"""
     if channel_idx < pgc.num_channels(I):
         I[:-1,:-1,channel_idx] = 255
+    return I
