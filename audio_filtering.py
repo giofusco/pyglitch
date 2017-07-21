@@ -1,23 +1,15 @@
-import pyglitch.core as core
+import pyglitch.core as pgc
 import numpy as np
 import math
 
-def reverb(I, patch, delay_pixels, decay = 0.5, convert_to_one_dimensional=False):
+def reverb(I, delay_pixels, decay = 0.5):
 
-    if convert_to_one_dimensional:
-        _patch = np.array(patch[4]).ravel()
-        patch = list(patch)
-        for i in range(0, len(_patch) - delay_pixels-1):
-            # WARNING: overflow potential
-            _patch[i + delay_pixels] += (_patch[i] * decay).astype(np.uint8)
-        patch[4] = np.reshape(_patch, patch[4].shape)
-    else:
-        for i in range(0, patch[2] - delay_pixels-1):
+    x = pgc.to_1d_array(I)
+    for i in range(0, len(x) - delay_pixels-1):
         # WARNING: overflow potential
-            patch[4][:-1, i + delay_pixels] += (patch[4][:-1, i] * decay).astype(np.uint8)
-    core.put_patch_in_place(I, patch)
+        x[i + delay_pixels] += (x[i] * decay).astype(np.uint8)
+    I = np.reshape(x, I.shape)
     return I
-
 
 
 def wah_wah(I, damp=0.05, minf=500, maxf=5000, Fw=2000, Fs=44100):
@@ -30,7 +22,7 @@ def wah_wah(I, damp=0.05, minf=500, maxf=5000, Fw=2000, Fs=44100):
     """
 
     delta = Fw / Fs
-    x = np.array(I).ravel()
+    x = pgc.to_1d_array(I)
     Fc = np.arange(minf, maxf, delta)
     while len(Fc) < len(x):
         Fc = np.append(Fc, np.arange(maxf, minf, -delta))
@@ -56,7 +48,7 @@ def wah_wah(I, damp=0.05, minf=500, maxf=5000, Fw=2000, Fs=44100):
 
 
 def flanger(I, max_time_delay = 0.003, rate=1, Fs=44100):
-    x = np.array(I).ravel()
+    x = pgc.to_1d_array(I)
     idx = np.arange(0, len(x))
     sin_ref = (np.sin(2 * math.pi * idx * (rate / Fs)))
     max_samp_delay = round(max_time_delay * Fs)
@@ -70,8 +62,9 @@ def flanger(I, max_time_delay = 0.003, rate=1, Fs=44100):
     I = np.reshape(y, I.shape)
     return I
 
+
 def tremolo(I, Fc=5, alpha=0.5, Fs=44100):
-    x = np.array(I).ravel()
+    x = pgc.to_1d_array(I)
     index = np.arange(0, len(x))
     trem = (1 + alpha * np.sin(2 * np.pi * index * (Fc / Fs)))
     y = np.multiply(x,trem)
