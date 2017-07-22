@@ -4,6 +4,11 @@ import matplotlib.image as mpimg
 import numpy as np
 
 
+RED = 0
+GREEN = 1
+BLUE = 2
+
+
 def check_block_boundaries(I, x, y, w, h):
     """checks that the rectangle falls withing the image size.
        :param I: numpy array (OpenCV Image)

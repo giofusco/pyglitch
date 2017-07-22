@@ -7,7 +7,8 @@ def reverb(I, delay_pixels, decay = 0.5):
     x = pgc.to_1d_array(I)
     for i in range(0, len(x) - delay_pixels-1):
         # WARNING: overflow potential
-        x[i + delay_pixels] += (x[i] * decay).astype(np.uint8)
+        # x[i + delay_pixels] += (x[i] * decay).astype(np.uint8)
+        x[i + delay_pixels] += (x[i] * decay)
     I = np.reshape(x, I.shape)
     return I
 
