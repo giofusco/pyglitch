@@ -62,6 +62,18 @@ def swap_patches(I, patch1, patch2):
     return I
 
 
+def plot_image(I, window_name="Output"):
+    cv2.imshow(window_name, I)
+
+
+# todo: check that file exists
+def open_image(filename):
+    I = cv2.imread(filename)
+    return I
+
+def save_image(I, filename):
+    cv2.imwrite(filename, I)
+
 def put_patch_in_place(I, patch):
     """overwrites the location of the patch in the input image using the data contained in patch"""
     I[patch[1]:patch[1] + patch[3], patch[0]:patch[0] + patch[2]] = patch[4].copy()
