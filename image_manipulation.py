@@ -2,6 +2,10 @@ import numpy as np
 import pyglitch.core as pgc
 
 
+RED = 0
+GREEN = 1
+BLUE = 2
+
 PADDING_RANDOM = 100
 PADDING_CIRCULAR = 101
 PADDING_COLOR = 102

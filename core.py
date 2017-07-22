@@ -1,4 +1,6 @@
-import cv2
+from PIL import Image
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import numpy as np
 
 
@@ -61,18 +63,19 @@ def swap_patches(I, patch1, patch2):
     I[patch2[1]:patch2[1] + patch2[3], patch2[0]:patch2[0] + patch2[2]] = patch1[4]
     return I
 
-
+# this might not work on mac os
 def plot_image(I, window_name="Output"):
-    cv2.imshow(window_name, I)
+    plt.imshow(window_name, I)
 
 
 # todo: check that file exists
-def open_image(filename):
-    I = cv2.imread(filename)
+def open_image(filename, format_ext):
+    I = plt.imread(filename, format=format_ext)
     return I
 
+
 def save_image(I, filename):
-    cv2.imwrite(filename, I)
+    mpimg.imsave(filename, I)
 
 def put_patch_in_place(I, patch):
     """overwrites the location of the patch in the input image using the data contained in patch"""
