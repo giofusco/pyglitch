@@ -1,4 +1,4 @@
-from PIL import Image
+# from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
@@ -63,9 +63,11 @@ def swap_patches(I, patch1, patch2):
     I[patch2[1]:patch2[1] + patch2[3], patch2[0]:patch2[0] + patch2[2]] = patch1[4]
     return I
 
+
 # this might not work on mac os
 def plot_image(I, window_name="Output"):
-    plt.imshow(window_name, I)
+    plt.imshow(I)
+    plt.show()
 
 
 # todo: check that file exists
@@ -76,6 +78,7 @@ def open_image(filename, format_ext):
 
 def save_image(I, filename):
     mpimg.imsave(filename, I)
+
 
 def put_patch_in_place(I, patch):
     """overwrites the location of the patch in the input image using the data contained in patch"""
