@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 
-
-RED = 0
-GREEN = 1
-BLUE = 2
+# color channel codes
+CH_RED = 0
+CH_GREEN = 1
+CH_BLUE = 2
 
 
 def check_block_boundaries(I, x, y, w, h):
@@ -69,7 +69,6 @@ def swap_patches(I, patch1, patch2):
     return I
 
 
-# this might not work on mac os
 def plot_image(I, window_name="Output"):
     plt.imshow(I)
     plt.show()

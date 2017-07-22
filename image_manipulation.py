@@ -9,7 +9,7 @@ DIRECTION_RIGHT = 105
 DIRECTION_UP = 106
 DIRECTION_DOWN = 107
 
-# TODO: handle different kind of paddings
+# TODO: handle different kinds of paddings
 def shift_rows(I, start, num_rows, offset, padding, color=(0,0,0)):
     pad = None
     if padding == PADDING_CIRCULAR:
@@ -48,6 +48,20 @@ def shift_channel_hor_at(I, x, y, w, h, channel_idx, offset):
 def shift_channel_hor(I, channel_idx, offset):
     rows = np.roll(I[:-1,:-1,channel_idx], offset, axis=1)
     I[:-1, :-1, channel_idx] = rows
+    return I
+
+
+def shift_channel_ver(I, channel_idx, offset):
+    cols = np.roll(I[:-1,:-1,channel_idx], offset, axis=0)
+    I[:-1, :-1, channel_idx] = cols
+    return I
+
+
+def shift_channel_ver_at(I, x, y, w, h, channel_idx, offset):
+    patch = pgc.get_patch(I, x, y, w, h)
+    if patch is not None:
+        shift_channel_ver(patch[4], channel_idx, offset)
+        pgc.put_patch_in_place(I, patch)
     return I
 
 
