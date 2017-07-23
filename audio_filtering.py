@@ -10,7 +10,7 @@ def reverb(I, delay_pixels, decay = 0.5):
         # x[i + delay_pixels] += (x[i] * decay).astype(np.uint8)
         x[i + delay_pixels] += (x[i] * decay)
     I = np.reshape(x, I.shape)
-    return I
+    return I.astype(np.uint8)
 
 
 def wah_wah(I, damp=0.05, minf=500, maxf=5000, Fw=2000, Fs=44100):
@@ -61,7 +61,7 @@ def flanger(I, max_time_delay = 0.003, rate=1, Fs=44100):
         cur_delay = math.ceil(cur_sin * max_samp_delay)
         y[i] = (amp * x[i]) + amp * (x[i - cur_delay])
     I = np.reshape(y, I.shape)
-    return I
+    return I.astype(np.uint8)
 
 
 def tremolo(I, Fc=5, alpha=0.5, Fs=44100):
@@ -70,4 +70,4 @@ def tremolo(I, Fc=5, alpha=0.5, Fs=44100):
     trem = (1 + alpha * np.sin(2 * np.pi * index * (Fc / Fs)))
     y = np.multiply(x,trem)
     I = np.reshape(y, I.shape)
-    return I
+    return I.astype(np.uint8)

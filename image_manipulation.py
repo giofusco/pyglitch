@@ -82,6 +82,12 @@ def saturate_channel(I, channel_idx):
     return I
 
 
+def posterize(I, num_bins):
+    bin_size = int(255/num_bins)
+    I = 255 * np.round(I/255*num_bins)/num_bins
+    return I.astype(np.uint8)
+
+
 def pixel_sort_brighter_than_rgb(I, r, g, b, strict=False, sorting_order=('h', 'l', 'v'), iterations = 8):
     """begin sorting when it finds a pixel which is not (r,g,b) in the column or row,
         and will stop sorting when it finds a (r,g,b) pixel"""
@@ -101,7 +107,7 @@ def pixel_sort_brighter_than_rgb(I, r, g, b, strict=False, sorting_order=('h', '
             matches = np.argwhere(to_idx > i)
             while not matches.size == 0:
                 j = to_idx[matches[0][0]][0]
-                I_hlv = rgb2hlv(I[row, i:j, 0:3], iterations)
+                I_hlv = _rgb2hlv(I[row, i:j, 0:3], iterations)
                 sort_idx = np.argsort(I_hlv, order=sorting_order)
                 I[row, i:j] = I[row, i+sort_idx]
                 matches_i = np.argwhere(from_idx > j)
@@ -114,7 +120,7 @@ def pixel_sort_brighter_than_rgb(I, r, g, b, strict=False, sorting_order=('h', '
 
 
 # from http://www.alanzucconi.com/2015/09/30/colour-sorting/
-def rgb2hlv(I_rgb, repetitions=1):
+def _rgb2hlv(I_rgb, repetitions=1):
     I_hlv = []
     for p in range(0,len(I_rgb)):
         r = I_rgb[p, pgc.CH_RED]
