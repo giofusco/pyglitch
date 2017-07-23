@@ -1,4 +1,5 @@
 import numpy as np
+import colorsys
 import pyglitch.core as pgc
 
 PADDING_RANDOM = 100
@@ -79,3 +80,59 @@ def saturate_channel(I, channel_idx):
     if channel_idx < pgc.num_channels(I):
         I[:-1,:-1,channel_idx] = 255
     return I
+
+
+def pixel_sort_brighter_than_rgb(I, r, g, b, strict=False, sorting_order=('h', 'l', 'v'), iterations = 8):
+    """begin sorting when it finds a pixel which is not (r,g,b) in the column or row,
+        and will stop sorting when it finds a (r,g,b) pixel"""
+    for row in range(0, pgc.height(I)):
+        if strict:
+            from_idx = np.argwhere((I[row, :-1, pgc.CH_RED] > r) & (I[row, :-1, pgc.CH_GREEN] > g)
+                                   & (I[row, :-1, pgc.CH_BLUE] > b))
+        else:
+            from_idx = np.argwhere((I[row, :-1, pgc.CH_RED] > r) | (I[row, :-1, pgc.CH_GREEN] > g)
+                                   | (I[row, :-1, pgc.CH_BLUE] > b))
+
+        to_idx = np.argwhere((I[row, :-1, pgc.CH_RED] <= r) & (I[row, :-1, pgc.CH_GREEN] <= g)
+                             & (I[row, :-1, pgc.CH_BLUE] <= b))
+
+        if from_idx.size > 0 and to_idx.size > 0:
+            i = from_idx[0][0]
+            matches = np.argwhere(to_idx > i)
+            while not matches.size == 0:
+                j = to_idx[matches[0][0]][0]
+                I_hlv = rgb2hlv(I[row, i:j, 0:3], iterations)
+                sort_idx = np.argsort(I_hlv, order=sorting_order)
+                I[row, i:j] = I[row, i+sort_idx]
+                matches_i = np.argwhere(from_idx > j)
+                if matches_i.size == 0:
+                    break
+                else:
+                    i = from_idx[matches_i[0][0]][0]
+                    matches = np.argwhere(to_idx > i)
+    return I
+
+
+# from http://www.alanzucconi.com/2015/09/30/colour-sorting/
+def rgb2hlv(I_rgb, repetitions=1):
+    I_hlv = []
+    for p in range(0,len(I_rgb)):
+        r = I_rgb[p, pgc.CH_RED]
+        g = I_rgb[p, pgc.CH_GREEN]
+        b = I_rgb[p, pgc.CH_BLUE]
+
+        lum = np.sqrt(.241 * r + .691 * g + .068 * b)
+
+        h, s, v = colorsys.rgb_to_hsv(r, g, b)
+
+        h2 = int(h * repetitions)
+        lum2 = int(lum * repetitions)
+        v2 = int(v * repetitions)
+
+        if h2 % 2 == 1:
+            v2 = repetitions - v2
+            lum = repetitions - lum2
+
+        I_hlv.append((h2, lum, v2))
+
+    return np.array(I_hlv, dtype=[('h', '<i4'), ('l', '<i4'), ('v', '<i4')])
