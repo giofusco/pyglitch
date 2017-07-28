@@ -3,12 +3,18 @@ import numpy as np
 import math
 
 def reverb(I, delay_pixels, decay = 0.5):
-    assert delay_pixels > 0, "delay_pixels must be positive integer"
+    assert delay_pixels != 0, "delay_pixels must be not zero"
     x = pgc.to_1d_array(I)
-    for i in range(0, len(x) - delay_pixels-1):
-        # WARNING: overflow potential
-        # x[i + delay_pixels] += (x[i] * decay).astype(np.uint8)
-        x[i + delay_pixels] += (x[i] * decay)
+    if delay_pixels > 0:
+        for i in range(0, len(x) - delay_pixels-1):
+            # WARNING: overflow potential
+            # x[i + delay_pixels] += (x[i] * decay).astype(np.uint8)
+            x[i + delay_pixels] += (x[i] * decay)
+    elif delay_pixels < 0:
+        for i in range(len(x)-1, -delay_pixels+1, -1):
+            # WARNING: overflow potential
+            # x[i + delay_pixels] += (x[i] * decay).astype(np.uint8)
+            x[i + delay_pixels] += (x[i] * decay)
     I = np.reshape(x, I.shape)
     return I.astype(np.uint8)
 
