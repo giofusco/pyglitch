@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 def reverb(I, delay_pixels, decay = 0.5):
-
+    assert delay_pixels > 0, "delay_pixels must be positive integer"
     x = pgc.to_1d_array(I)
     for i in range(0, len(x) - delay_pixels-1):
         # WARNING: overflow potential
