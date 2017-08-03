@@ -77,10 +77,13 @@ def saturate_channel_at(I, x, y, w, h, channel_idx):
 
 def saturate_channel(I, channel_idx):
     """"saturates a channel of the image"""
-    if channel_idx < pgc.num_channels(I):
-        I[:-1,:-1,channel_idx] = 255
+    set_channel_value(I, channel_idx, 255)
     return I
 
+def set_channel_value(I, channel_idx, value):
+    if channel_idx < pgc.num_channels(I):
+        I[:-1,:-1,channel_idx] = value
+    return I
 
 def posterize(I, num_bins):
     bin_size = int(255/num_bins)
