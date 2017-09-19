@@ -9,6 +9,15 @@ CH_GREEN = 1
 CH_BLUE = 2
 
 
+def rotate_left(I):
+    I = np.rot90(I, axes=(1, 0))
+    return I
+
+
+def rotate_right(I):
+    I = np.rot90(I, axes=(0, 1))
+    return I
+
 def check_block_boundaries(I, x, y, w, h):
     """checks that the rectangle falls withing the image size.
        :param I: numpy array (OpenCV Image)

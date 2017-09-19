@@ -10,6 +10,7 @@ DIRECTION_RIGHT = 105
 DIRECTION_UP = 106
 DIRECTION_DOWN = 107
 
+
 # TODO: handle different kinds of paddings
 def shift_rows(I, start, num_rows, offset, padding, color=(0,0,0)):
     pad = None
@@ -80,10 +81,12 @@ def saturate_channel(I, channel_idx):
     set_channel_value(I, channel_idx, 255)
     return I
 
+
 def set_channel_value(I, channel_idx, value):
     if channel_idx < pgc.num_channels(I):
         I[:-1,:-1,channel_idx] = value
     return I
+
 
 def posterize(I, num_bins):
     bin_size = int(255/num_bins)
@@ -91,7 +94,14 @@ def posterize(I, num_bins):
     return I.astype(np.uint8)
 
 
-def pixel_sort_brighter_than_rgb(I, r, g, b, strict=False, sorting_order=('h', 'l', 'v'), iterations = 8):
+def pixel_sort_brighter_than_rgb_vert(I, r, g, b, strict=False, sorting_order=('h', 'l', 'v'), iterations=8):
+    I = pixel_sort_brighter_than_rgb(pgc.rotate_right(I), r, g, b,
+                                     strict=False, sorting_order=('h', 'l', 'v'), iterations=8)
+    I = pgc.rotate_left(I)
+    return I
+
+
+def pixel_sort_brighter_than_rgb(I, r, g, b, strict=False, sorting_order=('h', 'l', 'v'), iterations=8):
     """begin sorting when it finds a pixel which is not (r,g,b) in the column or row,
         and will stop sorting when it finds a (r,g,b) pixel"""
     for row in range(0, pgc.height(I)):
