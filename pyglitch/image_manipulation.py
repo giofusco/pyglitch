@@ -1,6 +1,8 @@
 import numpy as np
 import colorsys
 import pyglitch.core as pgc
+from numba import jit, njit, prange
+
 
 PADDING_RANDOM = 100
 PADDING_CIRCULAR = 101
@@ -88,9 +90,11 @@ def set_channel_value(I, channel_idx, value):
     return I
 
 
-def posterize(I, num_bins):
+def posterize(I, num_bins, normalize=True):
+    if normalize:
+        I = rescale_image(I)
     bin_size = int(255/num_bins)
-    I = 255 * np.round(I/255*num_bins)/num_bins
+    I = 255-(255 * np.round(I/255*num_bins)/num_bins)
     return I.astype(np.uint8)
 
 
@@ -101,10 +105,11 @@ def pixel_sort_brighter_than_rgb_vert(I, r, g, b, strict=False, sorting_order=('
     return I
 
 
+@jit
 def pixel_sort_brighter_than_rgb(I, r, g, b, strict=False, sorting_order=('h', 'l', 'v'), iterations=8):
     """begin sorting when it finds a pixel which is not (r,g,b) in the column or row,
         and will stop sorting when it finds a (r,g,b) pixel"""
-    for row in range(0, pgc.height(I)):
+    for row in prange(0, pgc.height(I)):
         if strict:
             from_idx = np.argwhere((I[row, :-1, pgc.CH_RED] > r) & (I[row, :-1, pgc.CH_GREEN] > g)
                                    & (I[row, :-1, pgc.CH_BLUE] > b))
@@ -132,10 +137,28 @@ def pixel_sort_brighter_than_rgb(I, r, g, b, strict=False, sorting_order=('h', '
     return I
 
 
+# not sure it's necessary
+def rescale_image_rgb(I):
+    I_r = rescale_image(I[:,:,0])
+    I_g = rescale_image(I[:, :, 1])
+    I_b = rescale_image(I[:, :, 2])
+    I = np.dstack([I_r, I_g, I_b])
+    return I
+
+
+def rescale_image(I):
+    if (I.min() < 0 or I.max() > 255):
+        I = (I - I.min()) * (255 / (I.max() - I.min()))
+        I = 255-I.round()
+    return I
+
+
+
 # from http://www.alanzucconi.com/2015/09/30/colour-sorting/
+@jit
 def _rgb2hlv(I_rgb, repetitions=1):
     I_hlv = []
-    for p in range(0,len(I_rgb)):
+    for p in prange(0,len(I_rgb)):
         r = I_rgb[p, pgc.CH_RED]
         g = I_rgb[p, pgc.CH_GREEN]
         b = I_rgb[p, pgc.CH_BLUE]

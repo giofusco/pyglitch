@@ -3,20 +3,23 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import numpy as np
 
-# color channel codes
+#: color channel codes
 CH_RED = 0
 CH_GREEN = 1
 CH_BLUE = 2
 
 
 def rotate_left(I):
+    """ rotate the image 90 degrees to the left"""
     I = np.rot90(I, axes=(1, 0))
     return I
 
 
 def rotate_right(I):
+    """ rotate the image 90 degrees to the right"""
     I = np.rot90(I, axes=(0, 1))
     return I
+
 
 def check_block_boundaries(I, x, y, w, h):
     """checks that the rectangle falls withing the image size.
@@ -79,17 +82,28 @@ def swap_patches(I, patch1, patch2):
 
 
 def plot_image(I, window_name="Output"):
+    """ plot the image in window
+        :param I: the image to plot
+        :param window_name: the title of the window of the plot
+    """
     plt.imshow(I)
     plt.show()
 
 
 # todo: check that file exists
-def open_image(filename, format_ext):
-    I = plt.imread(filename, format=format_ext)
+def open_image(filename):
+    """loads the image
+        :param filename: path to the image
+    """
+    I = plt.imread(filename, format=None)
     return I
 
 
 def save_image(I, filename):
+    """save image to file
+        :param I: image to save
+        :param filename: filename where the image will be saved
+    """
     mpimg.imsave(filename, I)
 
 
@@ -99,16 +113,21 @@ def put_patch_in_place(I, patch):
 
 
 def to_1d_array(I):
+    """
+    transforms the image from a 3D matrix to a vector
+        :param I: input matrix
+        :return: 1D vector
+    """
     return np.array(I).ravel()
 
 
 def width(I):
-    """width of image"""
+    """returns the width of image"""
     return I.shape[1]
 
 
 def height(I):
-    """height of image"""
+    """returns the height of image"""
     return I.shape[0]
 
 
