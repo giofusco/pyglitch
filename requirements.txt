@@ -1,0 +1,4 @@
+numpy==1.13.3
+numba==0.35.0
+matplotlib==2.1.0
+Pillow==4.3.0
