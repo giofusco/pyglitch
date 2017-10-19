@@ -109,7 +109,7 @@ def posterize(I, num_bins, normalize=True):
     if normalize:
         I = rescale_image(I)
     bin_size = int(255/num_bins)
-    I = 255-(255 * np.round(I/255*num_bins)/num_bins)
+    I = (255 * np.round(I/255*num_bins)/num_bins)
     return I.astype(np.uint8)
 
 
@@ -158,14 +158,14 @@ def rescale_image_rgb(I):
     I_g = rescale_image(I[:, :, 1])
     I_b = rescale_image(I[:, :, 2])
     I = np.dstack([I_r, I_g, I_b])
-    return I
+    return  I.astype(np.uint8)
 
 
 def rescale_image(I):
     if (I.min() < 0 or I.max() > 255):
         I = (I - I.min()) * (255 / (I.max() - I.min()))
-        I = 255-I.round()
-    return I
+        I = I.round()
+    return I.astype(np.uint8)
 
 
 
