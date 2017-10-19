@@ -1,7 +1,7 @@
 import numpy as np
 import colorsys
 import pyglitch.core as pgc
-from numba import jit, njit, prange
+from numba import jit, prange
 
 
 PADDING_RANDOM = 100
