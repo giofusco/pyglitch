@@ -27,6 +27,10 @@ DIRECTION_RIGHT = 105
 DIRECTION_UP = 106
 DIRECTION_DOWN = 107
 
+OP_MEAN = 201
+OP_MEDIAN = 202
+OP_MAX = 203
+OP_MIN = 204
 
 # TODO: handle different kinds of paddings
 def shift_rows(X, start, num_rows, offset, padding, color=(0,0,0)):
@@ -210,17 +214,31 @@ def _rgb2hlv(I_rgb, repetitions=1):
 
 
 # TODO: speed up with jit?
-def pixelate(X, block_height=5, block_width=None):
+def pixelate(X, block_height=5, block_width=None, operator=OP_MEAN):
+
+    if operator == OP_MEAN:
+        _operator = np.mean
+    elif operator == OP_MAX:
+        _operator = np.max
+    elif operator == OP_MEDIAN:
+        _operator = np.median
+    elif operator == OP_MIN:
+        _operator = np.min
+    else:
+        # default
+        _operator = np.mean
+
     I = X.copy()
     if block_width is None:
         block_width = block_height
-    I = _pixelate(I, block_height, block_width, pgc.height(I), pgc.width(I))
+    I = _pixelate(I, block_height, block_width, pgc.height(I), pgc.width(I), _operator)
     return I
 
 
-def _pixelate(X, block_height, block_width, h, w):
+def _pixelate(X, block_height, block_width, h, w, _operator):
+
     for r in prange(0,h,block_height):
         for c in prange(0, w, block_width):
-            m_val = np.mean(X[r:r+block_height,c:c+block_width,:], axis=(0,1))
+            m_val = _operator(X[r:r+block_height,c:c+block_width,:], axis=(0,1))
             X[r:r+block_height,c:c+block_width,:] = m_val
     return X.astype(np.uint8)
