@@ -41,6 +41,9 @@ def shift_rows(X, start, num_rows, offset, padding, color=(0,0,0)):
         I[start:start + num_rows - 1, 0:-1] = rows
     return I
 
+def shift_cols_sine(X, start, num_rows, offset, phase, freq, padding):
+    I = shift_rows_sine(pgc.rotate_right(X), start, num_rows, offset, phase, freq, padding)
+    return pgc.rotate_left(I)
 
 def shift_rows_sine(X, start, num_rows, offset, phase, freq, padding):
     y = np.zeros(num_rows)
