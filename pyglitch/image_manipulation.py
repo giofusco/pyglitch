@@ -41,18 +41,22 @@ def shift_rows(X, start, num_rows, offset, padding, color=(0,0,0)):
         I[start:start + num_rows - 1, 0:-1] = rows
     return I
 
+
+def shift_cols(X, start, num_rows, offset, padding, color=(0,0,0)):
+    I = shift_rows(pgc.rotate_right(X), start, num_rows, offset, padding, color=(0, 0, 0))
+    return pgc.rotate_left(I)
+
+
 def shift_cols_sine(X, start, num_rows, offset, phase, freq, padding):
     I = shift_rows_sine(pgc.rotate_right(X), start, num_rows, offset, phase, freq, padding)
     return pgc.rotate_left(I)
 
+
 def shift_rows_sine(X, start, num_rows, offset, phase, freq, padding):
     y = np.zeros(num_rows)
-
     for i in range(0,len(phase)):
         y += np.sin(phase[i] + freq[i] * 2 * np.pi * np.arange(0, num_rows) / int(num_rows/2))
-
     _offset = np.multiply(offset, y)
-
     I = X.copy()
     pad = None
     if padding == PADDING_CIRCULAR:
@@ -60,8 +64,6 @@ def shift_rows_sine(X, start, num_rows, offset, phase, freq, padding):
             row = np.roll(I[start + i , 0:-1], int(_offset[i]), axis=0)
             I[start + i, 0:-1] = row
     return I
-
-
 
 
 def swap_channels_at(X, x, y, w, h, channel_idxs):
