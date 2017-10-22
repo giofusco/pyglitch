@@ -16,7 +16,7 @@
 import numpy as np
 import colorsys
 import pyglitch.core as pgc
-from numba import jit, prange
+from numba import jit, prange, autojit
 
 
 PADDING_RANDOM = 100
@@ -207,3 +207,20 @@ def _rgb2hlv(I_rgb, repetitions=1):
         I_hlv.append((h2, lum, v2))
 
     return np.array(I_hlv, dtype=[('h', '<i4'), ('l', '<i4'), ('v', '<i4')])
+
+
+# TODO: speed up with jit?
+def pixelate(X, block_height=5, block_width=None):
+    I = X.copy()
+    if block_width is None:
+        block_width = block_height
+    I = _pixelate(I, block_height, block_width, pgc.height(I), pgc.width(I))
+    return I
+
+
+def _pixelate(X, block_height, block_width, h, w):
+    for r in prange(0,h,block_height):
+        for c in prange(0, w, block_width):
+            m_val = np.mean(X[r:r+block_height,c:c+block_width,:], axis=(0,1))
+            X[r:r+block_height,c:c+block_width,:] = m_val
+    return X.astype(np.uint8)
