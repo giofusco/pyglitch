@@ -16,8 +16,8 @@
 import numpy as np
 import colorsys
 import pyglitch.core as pgc
-from numba import jit, prange, autojit
-
+from numba import jit, prange
+import matplotlib.pyplot as plt
 
 PADDING_RANDOM = 100
 PADDING_CIRCULAR = 101
@@ -40,6 +40,25 @@ def shift_rows(X, start, num_rows, offset, padding, color=(0,0,0)):
         rows = np.roll(I[start:start+num_rows-1,0:-1], offset, axis=1)
         I[start:start + num_rows - 1, 0:-1] = rows
     return I
+
+
+def shift_rows_sine(X, start, num_rows, offset, phase, freq, padding):
+    y = np.zeros(num_rows)
+
+    for i in range(0,len(phase)):
+        y += np.sin(phase[i] + freq[i] * 2 * np.pi * np.arange(0, num_rows) / int(num_rows/2))
+
+    _offset = np.multiply(offset, y)
+
+    I = X.copy()
+    pad = None
+    if padding == PADDING_CIRCULAR:
+        for i in range(0, len(_offset)):
+            row = np.roll(I[start + i , 0:-1], int(_offset[i]), axis=0)
+            I[start + i, 0:-1] = row
+    return I
+
+
 
 
 def swap_channels_at(X, x, y, w, h, channel_idxs):
