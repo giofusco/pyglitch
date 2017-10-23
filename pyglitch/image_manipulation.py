@@ -17,7 +17,7 @@ import numpy as np
 import colorsys
 import pyglitch.core as pgc
 from numba import jit, prange
-import matplotlib.pyplot as plt
+from scipy import signal
 
 PADDING_RANDOM = 100
 PADDING_CIRCULAR = 101
@@ -31,6 +31,7 @@ OP_MEAN = 201
 OP_MEDIAN = 202
 OP_MAX = 203
 OP_MIN = 204
+
 
 # TODO: handle different kinds of paddings
 def shift_rows(X, start, num_rows, offset, padding, color=(0,0,0)):
@@ -52,6 +53,7 @@ def shift_cols_sine(X, start, num_rows, offset, phase, freq, padding):
     return pgc.rotate_left(I)
 
 
+@jit
 def shift_rows_sine(X, start, num_rows, offset, phase, freq, padding):
     y = np.zeros(num_rows)
     for i in range(0,len(phase)):
@@ -60,7 +62,7 @@ def shift_rows_sine(X, start, num_rows, offset, phase, freq, padding):
     I = X.copy()
     pad = None
     if padding == PADDING_CIRCULAR:
-        for i in range(0, len(_offset)):
+        for i in prange(0, len(_offset)):
             row = np.roll(I[start + i , 0:-1], int(_offset[i]), axis=0)
             I[start + i, 0:-1] = row
     return I
@@ -266,3 +268,11 @@ def _pixelate(X, block_height, block_width, h, w, _operator):
             m_val = _operator(X[r:r+block_height,c:c+block_width,:], axis=(0,1))
             X[r:r+block_height,c:c+block_width,:] = m_val
     return X.astype(np.uint8)
+
+
+def apply_filter(X, H):
+    I = X.copy()
+    I[:, :, 0] = signal.convolve2d(I[:, :, 0], H, mode='same')
+    I[:, :, 1] = signal.convolve2d(I[:, :, 1], H, mode='same')
+    I[:, :, 2] = signal.convolve2d(I[:, :, 2], H, mode='same')
+    return I
