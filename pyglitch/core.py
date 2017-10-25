@@ -111,6 +111,8 @@ def open_image(filename):
         :param filename: path to the image
     """
     I = plt.imread(filename, format=None)
+    if I.dtype == np.float32:
+        I *= 255
     return I.copy()
 
 
