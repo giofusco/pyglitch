@@ -113,6 +113,7 @@ def open_image(filename):
     I = plt.imread(filename, format=None)
     if I.dtype == np.float32:
         I *= 255
+    I = I.astype(np.uint8)
     return I.copy()
 
 
