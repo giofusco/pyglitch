@@ -69,6 +69,7 @@ def shift_rows_sine(X, start, num_rows, offset, phase, freq, padding):
 
 
 def swap_channels_at(X, x, y, w, h, channel_idxs):
+    assert (channel_idxs >= 0 and channel_idxs < 3 )
     I = X.copy()
     patch = pgc.get_patch(I, x, y, w, h)
     if patch is not None:
@@ -122,8 +123,8 @@ def shift_channel_ver_at(X, x, y, w, h, channel_idx, offset):
 
 
 def saturate_channel_at(X, x, y, w, h, channel_idx):
-    I = X.copy()
     """saturate a channel in a specific image patch"""
+    I = X.copy()
     patch = pgc.get_patch(I, x, y, w, h)
     if patch is not None:
         I = saturate_channel(patch[4], channel_idx)
@@ -132,13 +133,15 @@ def saturate_channel_at(X, x, y, w, h, channel_idx):
 
 
 def saturate_channel(X, channel_idx):
+    """"saturates a channel of the image (sets the value to 255 for all the pixels)"""
     I = X.copy()
-    """"saturates a channel of the image"""
     I = set_channel_value(I, channel_idx, 255)
     return I
 
 
 def set_channel_value(X, channel_idx, value):
+    assert(value>=0 and value <=255)
+    """sets the channel value of all the pixels to a specified value"""
     I = X.copy()
     if channel_idx < pgc.num_channels(I):
         I[:-1,:-1,channel_idx] = value
@@ -146,6 +149,8 @@ def set_channel_value(X, channel_idx, value):
 
 
 def posterize(X, num_bins, normalize=True):
+    """quantizes the RGB values into a specified number of bins. If normalize is True, it normalizes the RGB
+        values before the quantization"""
     I = X.copy()
     if normalize:
         I = rescale_image(I)
@@ -194,23 +199,61 @@ def pixel_sort_brighter_than_rgb(X, r, g, b, strict=False, sorting_order=('h', '
     return I
 
 
-# not sure it's necessary
-def rescale_image_rgb(X):
-    I = X.copy()
-    I_r = rescale_image(I[:,:,0])
-    I_g = rescale_image(I[:, :, 1])
-    I_b = rescale_image(I[:, :, 2])
-    I = np.dstack([I_r, I_g, I_b])
-    return  I.astype(np.uint8)
-
-
 def rescale_image(X):
+    """rescales the RGB values back to 0-255 in the image (useful after especially applying audio filters)"""
     I = X.copy()
     if (I.min() < 0 or I.max() > 255):
         I = (I - I.min()) * (255 / (I.max() - I.min()))
         I = I.round()
     return I.astype(np.uint8)
 
+
+# TODO: speed up with jit?
+def pixelate(X, block_height=5, block_width=None, operator=OP_MEAN):
+    """pixelates the image
+    :param X: input image
+    :param block_height: height of the pixel
+    :param block_width: width of the pixel
+    :param operator: which function to use when computing the color value of the pixels:
+                    OP_MEAN: average RGB in the block (default)
+                    OP_MAX: max RGB value
+                    OP_MEDIAN: median RGB value
+                    OP_MIN: min RGB value
+                    """
+    if operator == OP_MEAN:
+        _operator = np.mean
+    elif operator == OP_MAX:
+        _operator = np.max
+    elif operator == OP_MEDIAN:
+        _operator = np.median
+    elif operator == OP_MIN:
+        _operator = np.min
+    else:
+        # default
+        _operator = np.mean
+
+    I = X.copy()
+    if block_width is None:
+        block_width = block_height
+    I = _pixelate(I, block_height, block_width, pgc.height(I), pgc.width(I), _operator)
+    return I
+
+
+def apply_filter(X, H):
+    """convolve image X with 2D matrix H. Returns a new modified matrix"""
+    I = X.copy()
+    for c in range(0, pgc.num_channels(X)):
+        I[:, :, c] = signal.convolve2d(I[:, :, c], H, mode='same')
+    return I
+
+
+def _pixelate(X, block_height, block_width, h, w, _operator):
+
+    for r in prange(0,h,block_height):
+        for c in prange(0, w, block_width):
+            m_val = _operator(X[r:r+block_height,c:c+block_width,:], axis=(0,1))
+            X[r:r+block_height,c:c+block_width,:] = m_val
+    return X.astype(np.uint8)
 
 
 # from http://www.alanzucconi.com/2015/09/30/colour-sorting/
@@ -237,42 +280,3 @@ def _rgb2hlv(I_rgb, repetitions=1):
         I_hlv.append((h2, lum, v2))
 
     return np.array(I_hlv, dtype=[('h', '<i4'), ('l', '<i4'), ('v', '<i4')])
-
-
-# TODO: speed up with jit?
-def pixelate(X, block_height=5, block_width=None, operator=OP_MEAN):
-
-    if operator == OP_MEAN:
-        _operator = np.mean
-    elif operator == OP_MAX:
-        _operator = np.max
-    elif operator == OP_MEDIAN:
-        _operator = np.median
-    elif operator == OP_MIN:
-        _operator = np.min
-    else:
-        # default
-        _operator = np.mean
-
-    I = X.copy()
-    if block_width is None:
-        block_width = block_height
-    I = _pixelate(I, block_height, block_width, pgc.height(I), pgc.width(I), _operator)
-    return I
-
-
-def _pixelate(X, block_height, block_width, h, w, _operator):
-
-    for r in prange(0,h,block_height):
-        for c in prange(0, w, block_width):
-            m_val = _operator(X[r:r+block_height,c:c+block_width,:], axis=(0,1))
-            X[r:r+block_height,c:c+block_width,:] = m_val
-    return X.astype(np.uint8)
-
-
-def apply_filter(X, H):
-    I = X.copy()
-    I[:, :, 0] = signal.convolve2d(I[:, :, 0], H, mode='same')
-    I[:, :, 1] = signal.convolve2d(I[:, :, 1], H, mode='same')
-    I[:, :, 2] = signal.convolve2d(I[:, :, 2], H, mode='same')
-    return I
