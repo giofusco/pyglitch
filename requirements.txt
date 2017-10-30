@@ -3,3 +3,4 @@ numba>=0.35.0
 matplotlib>=2.1.0
 Pillow>=4.3.0
 scipy>=1.0.0rc2
+imageio=2.2.0

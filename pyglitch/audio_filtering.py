@@ -37,7 +37,9 @@ def reverb(I, delay_pixels, decay = 0.5):
     return I
     # return I.astype(np.uint8)
 
-# @njit(parallel=True)
+
+#TODO: optimize code
+@jit
 def wah_wah(I, damp=0.05, minf=500, maxf=5000, Fw=2000, Fs=44100):
     """wah-wah filter
         :parameter damp: damping factor. lower the damping factor the smaller the pass band
@@ -74,27 +76,77 @@ def wah_wah(I, damp=0.05, minf=500, maxf=5000, Fw=2000, Fs=44100):
 
 
 @jit
-def flanger(I, max_time_delay = 0.003, rate=1, Fs=44100, amp=0.7):
-    x = pgc.to_1d_array(I)
-    idx = np.arange(0, len(x))
+def flanger(X, max_time_delay=0.003, rate=1, Fs=44100, amp=0.7):
+    I = X.copy()
+    if pgc.num_channels(X) == 3:
+        I = __flangerRGB(I, max_time_delay, rate, Fs, amp)
+        return I
+    else:
+        x = pgc.to_1d_array(I)
+        idx = np.arange(0, len(x))
+        sin_ref = (np.sin(2 * math.pi * idx * (rate / Fs)))
+        max_samp_delay = round(max_time_delay * Fs)
+        y = np.zeros(len(x))
+        y[1: max_samp_delay] = x[1: max_samp_delay]
+        for i in prange(max_samp_delay+1, len(x)):
+            cur_sin = np.abs(sin_ref[i])
+            cur_delay = math.ceil(cur_sin * max_samp_delay)
+            y[i] = (amp * x[i]) + amp * (x[i - cur_delay])
+        I = np.reshape(y, I.shape)
+    return I
+    # return I.astype(np.uint8)
+
+
+@jit
+def __flangerRGB(I, max_time_delay, rate, Fs, amp):
+    x0 = pgc.to_1d_array(I[:,:,0])
+    x1 = pgc.to_1d_array(I[:, :, 1])
+    x2 = pgc.to_1d_array(I[:, :, 2])
+    idx = np.arange(0, len(x0))
     sin_ref = (np.sin(2 * math.pi * idx * (rate / Fs)))
     max_samp_delay = round(max_time_delay * Fs)
-    y = np.zeros(len(x))
-    y[1: max_samp_delay] = x[1: max_samp_delay]
-    for i in prange(max_samp_delay+1, len(x)):
+    y0 = np.zeros(len(x0))
+    y0[1: max_samp_delay] = x0[1: max_samp_delay]
+    y1 = np.zeros(len(x0))
+    y1[1: max_samp_delay] = x0[1: max_samp_delay]
+    y2 = np.zeros(len(x0))
+    y2[1: max_samp_delay] = x0[1: max_samp_delay]
+    for i in prange(max_samp_delay+1, len(x0)):
         cur_sin = np.abs(sin_ref[i])
         cur_delay = math.ceil(cur_sin * max_samp_delay)
-        y[i] = (amp * x[i]) + amp * (x[i - cur_delay])
-    I = np.reshape(y, I.shape)
+        y0[i] = (amp * x0[i]) + amp * (x0[i - cur_delay])
+        y1[i] = (amp * x1[i]) + amp * (x1[i - cur_delay])
+        y2[i] = (amp * x2[i]) + amp * (x2[i - cur_delay])
+
+    I[:, :, 0] = np.reshape(y0, (pgc.height(I), pgc.width(I)))
+    I[:, :, 1] = np.reshape(y1, (pgc.height(I), pgc.width(I)))
+    I[:, :, 2] = np.reshape(y2, (pgc.height(I), pgc.width(I)))
+
     return I
+
+
+def tremolo(X, Fc=5, alpha=0.5, Fs=44100):
+    # assert (X.shape[2] == 0 or X.shape[2] == 3)
+    I = X.copy()
+    if pgc.num_channels(X) == 3:
+        I = __tremoloRGB(I, Fc, alpha, Fs)
+        return I
+    else:
+        x = pgc.to_1d_array(I)
+        index = np.arange(0, len(x))
+        trem = (1 + alpha * np.sin(2 * np.pi * index * (Fc / Fs)))
+        y = np.multiply(x,trem)
+        I = np.reshape(y, I.shape)
+        return I
     # return I.astype(np.uint8)
 
 
-def tremolo(I, Fc=5, alpha=0.5, Fs=44100):
-    x = pgc.to_1d_array(I)
-    index = np.arange(0, len(x))
+@jit
+def __tremoloRGB(I, Fc=5, alpha=0.5, Fs=44100):
+    index = np.arange(0, pgc.width(I)*pgc.height(I))
     trem = (1 + alpha * np.sin(2 * np.pi * index * (Fc / Fs)))
-    y = np.multiply(x,trem)
-    I = np.reshape(y, I.shape)
+    for c in prange(0, 2):
+        x = pgc.to_1d_array(I[:, :, c])
+        y = np.multiply(x, trem)
+        I[:, :, c] = np.reshape(y, (pgc.height(I), pgc.width(I)))
     return I
-    # return I.astype(np.uint8)

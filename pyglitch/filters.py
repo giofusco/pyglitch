@@ -23,7 +23,7 @@ def vhs(X, blur_amount, shift_amount, shift_channel):
     H = np.asarray(H)*1/blur_amount
     I = pgim.shift_channel_hor(I, shift_channel, shift_amount)
     I = pgim.apply_filter(I, H)
-    I = pgaf.flanger(I, max_time_delay=0.0001, rate=.75, Fs=48100)
+    I = pgaf.flanger(I, max_time_delay=0.0001, rate=.75, Fs=48100, amp=0.5)
     return I
 
 
