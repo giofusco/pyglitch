@@ -110,9 +110,9 @@ def open_image(filename):
     """loads the image
         :param filename: path to the image
     """
-    I = plt.imread(filename, format=None)
-    if I.dtype == np.float32:
-        I *= 255
+    I = mpimg.imread(filename, format=None)
+    # if I.dtype == np.float32:
+    #     I *= 255
     I = I.astype(np.uint8)
     return I.copy()
 

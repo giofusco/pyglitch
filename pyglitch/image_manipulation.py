@@ -161,7 +161,7 @@ def posterize(X, num_bins, normalize=True):
 
 def pixel_sort_brighter_than_rgb_vert(X, r, g, b, strict=False, sorting_order=('h', 'l', 'v'), iterations=8):
     I = pixel_sort_brighter_than_rgb(pgc.rotate_right(X), r, g, b,
-                                     strict=False, sorting_order=('h', 'l', 'v'), iterations=8)
+                                     strict=strict, sorting_order=sorting_order, iterations=iterations)
     I = pgc.rotate_left(I)
     return I
 
@@ -200,7 +200,7 @@ def pixel_sort_brighter_than_rgb(X, r, g, b, strict=False, sorting_order=('h', '
 
 
 def rescale_image(X):
-    """rescales the RGB values back to 0-255 in the image (useful after especially applying audio filters)"""
+    """rescales the RGB values back to 0-255 in the image (useful especially after applying audio filters)"""
     I = X.copy()
     if (I.min() < 0 or I.max() > 255):
         I = (I - I.min()) * (255 / (I.max() - I.min()))
@@ -238,11 +238,11 @@ def pixelate(X, block_height=5, block_width=None, operator=OP_MEAN):
     I = __pixelate(I, block_height, block_width, pgc.height(I), pgc.width(I), _operator)
     return I
 
-
+@jit
 def apply_filter(X, H):
     """convolve image X with 2D matrix H. Returns a new modified matrix"""
     I = X.copy()
-    for c in range(0, pgc.num_channels(X)):
+    for c in prange(0, pgc.num_channels(X)):
         I[:, :, c] = signal.convolve2d(I[:, :, c], H, mode='same')
     return I
 

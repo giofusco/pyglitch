@@ -108,9 +108,9 @@ def __flangerRGB(I, max_time_delay, rate, Fs, amp):
     y0 = np.zeros(len(x0))
     y0[1: max_samp_delay] = x0[1: max_samp_delay]
     y1 = np.zeros(len(x0))
-    y1[1: max_samp_delay] = x0[1: max_samp_delay]
+    y1[1: max_samp_delay] = x1[1: max_samp_delay]
     y2 = np.zeros(len(x0))
-    y2[1: max_samp_delay] = x0[1: max_samp_delay]
+    y2[1: max_samp_delay] = x2[1: max_samp_delay]
     for i in prange(max_samp_delay+1, len(x0)):
         cur_sin = np.abs(sin_ref[i])
         cur_delay = math.ceil(cur_sin * max_samp_delay)
